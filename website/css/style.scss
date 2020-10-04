@@ -1,0 +1,154 @@
+//@import url('https://fonts.googleapis.com/css?family=Roboto:400,400i&display=swap');
+//@import url('https://fonts.googleapis.com/css?family=Bad+Script&display=swap');
+@import url('fonts.css');
+
+//Variables
+$theme_color: #e90c59;
+$error_color: #d9534f;
+$success_color: #5cb85c;
+$info_color: gray;
+$font: 'Roboto', sans-serif;
+$title_font: 'Bad Script', cursive;
+
+//Mixin
+@mixin x-center(){
+  margin: 0 auto;
+}
+
+@mixin border-radius($radius) {
+	border-radius: $radius;
+	-webkit-border-radius: $radius;
+	-moz-border-radius: $radius;
+}
+
+@mixin translateX($percent) {
+  -webkit-transform: translateX($percent);
+  -ms-transform: translateX($percent);
+  transform: translateX($percent);
+}
+
+@mixin attachBottom($distance, $margin){
+  text-align: center;
+  margin: $margin 0;
+  position: absolute;
+  bottom: $distance;
+}
+
+@mixin zoneColor($color){
+  border-color: $color;
+  background-color: lighten($color,30%);
+  i {
+    color: darken($color, 30%);
+  }
+}
+
+//Reset
+* {
+  margin: 0;
+  padding: 0;
+}
+
+//Style
+body{
+  font-family: $font;
+}
+
+.container{
+  padding-top: 50px;
+  max-width: 900px;
+  @include x-center();
+
+  h1, h2 {
+    text-align: center;
+  }
+  .title {
+    font-family: $title_font;
+  }
+}
+
+.dropzone{
+  width: 80%;
+  height: 500px;
+  border: 3px gray dashed;
+  position: relative;
+  text-align: center;
+
+  @include border-radius(20px);
+  @include x-center;
+
+  .info{
+    width: 100%;
+
+    @include attachBottom(40px, 20px);
+    @include x-center;
+  }
+  input {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+  }
+}
+
+.desczone {
+  width: 80%;
+  border: 3px gray solid;
+  margin-bottom: 20px;
+  min-height: 100px;
+
+  @include border-radius(20px);
+  @include x-center;
+
+  div{
+    padding: 20px;
+  }
+  i,p {
+    display: inline;
+  }
+  i {
+    font-size: 3em;
+    margin: 0 20px;
+    float: left;
+  }
+}
+
+.success_zone {
+  @include zoneColor($success_color);
+}
+
+.error_zone {
+  @include zoneColor($error_color);
+}
+
+.info_zone {
+  @include zoneColor($info_color);
+}
+
+// Loading
+.loading_div {
+  background-color: rgba(black, .5);;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  position: fixed;
+}
+
+.loader {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  margin-top: 10%;
+  z-index: 3;
+  left: 50%;
+
+  @include attachBottom(40px, 20px);
+  @include translateX(-50%);
+  @include x-center;
+
+  path, rect {
+    fill: $theme_color;
+  }
+}
+
+.hidden {
+  display: none;
+}
