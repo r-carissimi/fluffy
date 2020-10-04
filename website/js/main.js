@@ -55,7 +55,7 @@ function speak(text){
 
 $( document ).ready(function() {
 
-  var CLIENT_ID = "cdf747392609b91";
+  var CLIENT_ID = "abc123456789d01";
 
   $("#image_selector").change(function() {
     startLoading();
