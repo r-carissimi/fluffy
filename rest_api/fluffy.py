@@ -52,9 +52,6 @@ import requests
 #Cross Origin Requests
 from flask_cors import CORS
 
-#Database
-import mysql.connector
-
 #ImageHash
 import hashlib
 
@@ -68,12 +65,6 @@ import tempfile
 IMG_SERVICE_LINK = "https://i.imgur.com/"
 TMP_IMG_PATH = "/tmp/tf_img"
 SERVER_PORT = "5000"
-
-MYSQL_ADDRESS = "localhost"
-MYSQL_USER = "root"
-MYSQL_PASSWORD = "root"
-
-MYSQL_DB = "db_fluffy"
 
 #Tensorflow model's dir (script's path + models folder)
 MODEL_DIR = os.path.dirname(os.path.realpath(__file__)) + '/models'
@@ -219,14 +210,6 @@ app = Flask(__name__, template_folder="templates")
 #Allow Cross Origins
 CORS(app)
 
-#Database
-db = mysql.connector.connect(
-  host=MYSQL_ADDRESS,
-  user=MYSQL_USER,
-  passwd=MYSQL_PASSWORD
-)
-cursor = db.cursor()
-
 # Create a URL route in our application for "/api/img_id?deletetoken=***"
 @app.route('/api/<id>', methods=['GET', 'POST'])
 def api(id):
@@ -254,79 +237,21 @@ def api(id):
     hasher.update(tmp.read())
     print("[INFO] Image Hash: " + hasher.hexdigest())
 
-    #Searchs the hash in the DB
-    cursor.execute("SELECT result FROM results WHERE hash = \"" + hasher.hexdigest() + "\";")
-    result = cursor.fetchall()
-    #Num of result's lines
-    rows = len(result)
+    print("[INFO] Processing image...")
 
-    #Checks if hash is registered
-    if(rows>0):
+    # Command Execution
+    # cmd_output = subprocess.check_output(COMMAND, shell=True)
+    cmd_output = run_inference_on_image(TMP_IMG_PATH)
+    
+    print("[INFO] Elaborated result: " + cmd_output)
 
-        print("[INFO] Image already processed, returning cached result")
-
-        #Gets the first row of the first result (the result is a list of a tuple)
-        cmd_output = result[0][0]
-
-        print("[INFO] Cached result: " + cmd_output)
-
-        sql = "INSERT INTO images (name, hash, deletetoken) VALUES (%s, %s, %s)"
-        val = (id, hasher.hexdigest(), deletetoken)
-        cursor.execute(sql, val)
-        db.commit()
-
-        print("[INFO] File added to database")
-
-    else:
-
-        print("[INFO] Processing image...")
-
-        # Command Execution
-        # cmd_output = subprocess.check_output(COMMAND, shell=True)
-        cmd_output = run_inference_on_image(TMP_IMG_PATH)
-        
-        print("[INFO] Elaborated result: " + cmd_output)
-
-        # Get Only the First Result "jsonified"
-        #cmd_output = cmd_output.decode().split('\n', 1)[0]
-
-        #Insert the result in the database
-        sql = "INSERT INTO results (hash, result) VALUES (%s, %s)"
-        val = (hasher.hexdigest(), cmd_output)
-        cursor.execute(sql, val)
-        db.commit()
-
-        print("[INFO] Result added to database")
-
-        sql = "INSERT INTO images (name, hash, deletetoken) VALUES (%s, %s, %s)"
-        val = (id, hasher.hexdigest(), deletetoken)
-        cursor.execute(sql, val)
-        db.commit()
-
-        print("[INFO] File added to database")
+    # Get Only the First Result "jsonified"
+    #cmd_output = cmd_output.decode().split('\n', 1)[0]
 
     #Closes the file
     tmp.close()
     # Return the result
     return jsonify(eval(cmd_output))
-  
-def setDatabase():
-  sql = 'CREATE DATABASE IF NOT EXISTS `' + MYSQL_DB + '` /*!40100 DEFAULT CHARACTER SET latin1 */;'
-  cursor.execute(sql)
-
-  sql = 'USE `' + MYSQL_DB + '`;'
-  cursor.execute(sql)
-
-  sql = 'CREATE TABLE IF NOT EXISTS `results` ' + \
-    '( `hash` varchar(32) NOT NULL, `result` varchar(140) NOT NULL, PRIMARY KEY (`hash`) );'
-  cursor.execute(sql)
-
-  sql = 'CREATE TABLE IF NOT EXISTS `images` ' + \
-    '( `name` varchar(30) NOT NULL, `hash` varchar(32) NOT NULL, `deletetoken` ' + \
-    'varchar(30) DEFAULT NULL, PRIMARY KEY (`name`), KEY `hashes_idx` (`hash`), ' + \
-    'CONSTRAINT `hashes` FOREIGN KEY (`hash`) REFERENCES `results` (`hash`) ' + \
-    'ON DELETE NO ACTION ON UPDATE NO ACTION);'
-  cursor.execute(sql)
 
 if __name__ == '__main__':
 
@@ -337,5 +262,4 @@ if __name__ == '__main__':
   # imagenet_2012_challenge_label_map_proto.pbtxt:
   #   Text representation of a protocol buffer mapping a label to synset ID.
   maybe_download_and_extract()
-  setDatabase()
   app.run(port=SERVER_PORT, host="0.0.0.0")
