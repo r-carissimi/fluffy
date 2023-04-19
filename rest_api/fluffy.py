@@ -210,13 +210,11 @@ app = Flask(__name__, template_folder="templates")
 #Allow Cross Origins
 CORS(app)
 
-# Create a URL route in our application for "/api/img_id?deletetoken=***"
+# Create a URL route in our application for "/api/img_id"
 @app.route('/api/<id>', methods=['GET', 'POST'])
 def api(id):
 
     print("[INFO] Received request")
-    
-    deletetoken = request.args["deletetoken"]
 
     #TMP File Creation
     tmp = tempfile.NamedTemporaryFile(mode="w+b")
