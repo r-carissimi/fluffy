@@ -1,4 +1,4 @@
-# Fluffy - AI powered photo description
+# Fluffy - AI powered photo describer
 Automated image description based on Tensorflow
 
 ## How it works
